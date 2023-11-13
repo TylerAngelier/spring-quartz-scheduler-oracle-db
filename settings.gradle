@@ -1,1 +1,9 @@
 rootProject.name = 'scheduler'
+
+dependencyResolutionManagement {
+  versionCatalogs {
+    libs {
+      library('com.oracle.database.spring', 'com.oracle.database.spring:oracle-spring-boot-starter-ucp:3.1.0')
+    }
+  }
+}

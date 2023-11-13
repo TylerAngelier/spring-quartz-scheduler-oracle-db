@@ -1,0 +1,27 @@
+spring:
+  profiles:
+    active: dev
+  datasource:
+    type: oracle.ucp.jdbc.PoolDataSource
+    driver-class-name: oracle.jdbc.OracleDriver
+    jdbcUrl: jdbc:oracle:thin:@devvm:1521/dev
+    oracleucp:
+      connection-factory-class-name: oracle.jdbc.pool.OracleDataSource
+      sql-for-validate-connection: "select * from dual"
+      connection-pool-name: SchedulerApplication
+      initial-pool-size: 5
+      min-pool-size: 5
+      max-pool-size: 20
+  quartz:
+    job-store-type: jdbc
+    jdbc:
+      schema:
+      initialize-schema: never
+    wait-for-jobs-to-complete-on-shutdown: true
+    properties:
+      org:
+        quartz:
+          threadPool:
+            threadCount: 5
+          jobStore:
+            driverDelegateClass: org.quartz.impl.jdbcjobstore.oracle.OracleDelegate
