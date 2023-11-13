@@ -1,0 +1,5 @@
+spring:
+  datasource:
+    jdbcUrl: jdbc:oracle:thin:@<your-domain>:1521/<your-pdb>
+    username: <your-user>
+    password: "<your-password>"

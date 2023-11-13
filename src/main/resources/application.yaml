@@ -15,7 +15,6 @@ spring:
   quartz:
     job-store-type: jdbc
     jdbc:
-      schema:
       initialize-schema: never
     wait-for-jobs-to-complete-on-shutdown: true
     properties:
