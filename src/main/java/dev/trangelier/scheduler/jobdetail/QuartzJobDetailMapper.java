@@ -4,6 +4,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import org.springframework.jdbc.core.RowMapper;
 
+/** Spring JDBC {@link RowMapper} for the {@link QuartzJobDetail} class. */
 public final class QuartzJobDetailMapper implements RowMapper<QuartzJobDetail> {
 
   @Override

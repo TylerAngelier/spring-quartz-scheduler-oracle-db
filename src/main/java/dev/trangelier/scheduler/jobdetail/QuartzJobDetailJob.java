@@ -7,6 +7,12 @@ import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * {@link Job} implementation for the QuartzJobDetail process. This process outputs all the
+ * configured jobs.
+ *
+ * <p>This job will read from the Quartz JDBC job detail table and output the job information.
+ */
 public class QuartzJobDetailJob implements Job {
 
   private final Logger log = LoggerFactory.getLogger(QuartzJobDetailJob.class);
@@ -14,6 +20,10 @@ public class QuartzJobDetailJob implements Job {
 
   public QuartzJobDetailJob(QuartzJobDetailDao quartzJobDetailDao) {
     this.quartzJobDetailDao = quartzJobDetailDao;
+  }
+
+  private static long getMilliseconds(long endTime, long startTime) {
+    return (endTime - startTime) / 1000000;
   }
 
   @Override
@@ -26,9 +36,5 @@ public class QuartzJobDetailJob implements Job {
 
     final var endTime = System.nanoTime();
     log.info("Executed Job in {}ms", getMilliseconds(endTime, startTime));
-  }
-
-  private static long getMilliseconds(long endTime, long startTime) {
-    return (endTime - startTime) / 1000000;
   }
 }

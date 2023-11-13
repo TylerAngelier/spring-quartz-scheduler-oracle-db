@@ -13,6 +13,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+/**
+ * Service for {@link QuartzJobDetail}. Handles defining and all scheduling operations for the
+ * {@link QuartzJobDetailJob}.
+ *
+ * <p>TODO: Refactor these methods to an interface and allow the delegate pattern to create all
+ * jobs.
+ */
 @Service
 public class QuartzJobDetailService {
 
@@ -23,6 +30,7 @@ public class QuartzJobDetailService {
     this.scheduler = scheduler;
   }
 
+  /** Starts all tasks managed by this class. */
   public void startTasks() {
     try {
       var jobDetail = buildJobDetails();
