@@ -30,7 +30,7 @@ jobs:
         SPRING_DATASOURCE_USERNAME: app_user
         SPRING_DATASOURCE_PASSWORD: "TestPassword123()"
         SPRING_DATASOURCE_JDBCURL: jdbc:oracle:thin:@localhost:1521/dev
-        SPRING_QUARTZ_JDBC_INITIALIZESCHEMA: true
+        SPRING_QUARTZ_JDBC_INITIALIZESCHEMA: always
 
     services:
       # Oracle service (label used to access the service container)
