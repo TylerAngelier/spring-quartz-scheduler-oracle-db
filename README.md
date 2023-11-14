@@ -2,6 +2,8 @@
 
 I mean... Everyone wants to build a scheduler, right?
 
+![Build Passing](https://github.com/tylerangelier/spring-quartz-scheduler-oracle-db/actions/workflows/gradle.yml/badge.svg)
+
 # Usage
 
 Probably none. Application used to prove out Spring Scheduler using Quartz with a persistence tier
