@@ -29,7 +29,7 @@ jobs:
       env:
         SPRING_DATASOURCE_USERNAME: app_user
         SPRING_DATASOURCE_PASSWORD: "TestPassword123()"
-        SPRING_DATASOURCE_JDBCURL: jdbc:oracle:thin:@oracle:1521/dev
+        SPRING_DATASOURCE_JDBCURL: jdbc:oracle:thin:@localhost:1521/dev
 
     services:
       # Oracle service (label used to access the service container)
