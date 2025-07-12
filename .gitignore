@@ -38,3 +38,4 @@ out/
 
 ### Spring Boot ###
 src/main/resources/application-dev.yml
+.aider*

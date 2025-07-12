@@ -1,5 +1,5 @@
 spring:
   datasource:
-    jdbcUrl: jdbc:oracle:thin:@<your-domain>:1521/<your-pdb>
-    username: <your-user>
-    password: "<your-password>"
+    jdbcUrl: jdbc:oracle:thin:@localhost:1521/FREEPDB1
+    username: APP_USER
+    password: "spring-quartz-scheduler-oracle-db"
