@@ -7,6 +7,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 /**
  * The main application class that starts the scheduler.
  *
+ * This project is a demonstration of using Spring Scheduler with Quartz to manage jobs in an Oracle
+ * Database. It includes a service for defining and scheduling Quartz jobs, as well as a DAO for
+ * retrieving job details from the database.
+ *
  * @author Tyler Angelier
  */
 @SpringBootApplication
