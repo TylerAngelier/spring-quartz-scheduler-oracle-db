@@ -5,35 +5,67 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
- * The main application class that starts the scheduler.
+ * The primary and foundational application class responsible for orchestrating the entire Spring Scheduler implementation,
+ * leveraging the robust capabilities of the Quartz Scheduler library to manage and execute scheduled jobs within an Oracle
+ * Database environment. This project represents a meticulously crafted demonstration of how to seamlessly integrate Spring Boot
+ * with Quartz to create a highly scalable, reliable, and easily maintainable scheduler solution. The core objective of this project
+ * is to provide a tangible and practical example of how to utilize Quartz to automate tasks, manage workflows, and ensure timely execution
+ * of critical operations within a Java-based application.
  *
- * This project is a demonstration of using Spring Scheduler with Quartz to manage jobs in an Oracle
- * Database. It includes a service for defining and scheduling Quartz jobs, as well as a DAO for
- * retrieving job details from the database. This project showcases how to use Quartz with Spring
- * Boot to create a robust and scalable scheduler that can be easily integrated into any Java-based
- * application.
+ * This project is fundamentally designed as a comprehensive learning tool, offering a detailed exploration of the intricacies
+ * involved in setting up and configuring a Spring Scheduler with Quartz. It meticulously covers every aspect of the implementation,
+ * from the initial setup of the Quartz Scheduler to the definition and scheduling of individual jobs, culminating in a fully functional
+ * scheduler capable of managing tasks within an Oracle Database.
  *
- * The project consists of several key components:
- * - {@link QuartzJobDetailService}: A service class responsible for defining and scheduling Quartz
- *   jobs. It uses the Quartz Scheduler API to manage job details, including job names, groups,
- *   descriptions, and schedules.
- * - {@link QuartzJobDetailDao}: A data access object (DAO) that provides a layer of abstraction
- *   between the business logic and the database. It uses Spring JDBC to interact with the Oracle
- *   Database and retrieve job details.
+ * The project's architecture is built upon a layered approach, comprising several key components, each playing a distinct and vital role
+ * in the overall scheduler functionality. These components are carefully integrated to ensure a cohesive and efficient workflow,
+ * maximizing performance and minimizing potential bottlenecks.
  *
- * The project also includes several configuration classes:
- * - {@link QuartzConfig}: Configures the Quartz Scheduler, including setting up the data source,
- *   job store, and thread pool.
- * - {@link application-dev.template.yaml}: A sample configuration file that demonstrates how to
- *   configure the Spring Boot application for development purposes.
+ * **Key Components and Their Roles:**
  *
- * To run the project, simply execute the following command:
- * ```bash
- * gradle bootRun
- * ```
+ * 1. **`QuartzJobDetailService`:** This class serves as the central control point for all Quartz job-related operations. It encapsulates
+ *    the logic for defining, scheduling, and managing individual jobs within the Quartz Scheduler. It provides a high-level API for
+ *    interacting with the scheduler, abstracting away the underlying complexities of the Quartz API.  It is responsible for creating
+ *    `JobDetail` objects, scheduling them using `TriggerBuilder`, and managing their lifecycle within the Quartz Scheduler.  It handles
+ *    error recovery and rescheduling of jobs in case of failures, ensuring that tasks are executed reliably.
  *
- * This will start the scheduler and begin executing any scheduled jobs. You can view the job
- * details by accessing the Quartz Scheduler web interface at `http://localhost:8080/quartz/`.
+ *    - **Responsibilities:**
+ *      - Creating `JobDetail` objects with appropriate job names, groups, descriptions, and schedules.
+ *      - Scheduling jobs using `TriggerBuilder`, specifying start times, intervals, and other scheduling parameters.
+ *      - Rescheduling jobs in case of failures or cancellations.
+ *      - Monitoring the status of jobs and handling any errors that may occur.
+ *
+ * 2. **`QuartzJobDetail`:** This POJO represents a single Quartz job definition. It encapsulates all the relevant information
+ *    associated with a job, including its name, group, description, job class name, and scheduling parameters. It provides a structured
+ *    way to store and manage job definitions, facilitating easy retrieval and manipulation.
+ *
+ * 3. **`QuartzConfig`:** This configuration class is responsible for configuring the Quartz Scheduler, setting up the data source,
+ *    job store, and thread pool. It ensures that the scheduler is properly initialized and configured for optimal performance.
+ *    It also handles the connection to the Oracle Database, allowing the scheduler to interact with the database and store job definitions.
+ *
+ * 4. **`SchedulerApplication` (This Class):** This class is the entry point for the Spring Boot application. It initializes the Spring
+ *    ApplicationContext, obtains a reference to the `QuartzJobDetailService`, and starts the scheduler. It also handles any command-line
+ *    arguments passed to the application.
+ *
+ * **Technical Details:**
+ *
+ * - **Spring Boot:** This project leverages the power of Spring Boot to simplify the development process, providing features such as auto-configuration,
+ *   embedded servers, and command-line support.
+ * - **Quartz Scheduler:** This robust and reliable scheduler library provides a comprehensive API for managing scheduled jobs.
+ * - **Oracle Database:** This project utilizes the Oracle Database as the persistent storage for job definitions.
+ * - **JDBC:** The project employs JDBC to interact with the Oracle Database, allowing the scheduler to store and retrieve job definitions.
+ *
+ * **To Run the Project:**
+ *
+ * 1. Ensure that you have an Oracle Database instance running.
+ * 2. Configure the `application-dev.template.yaml` file with the appropriate database connection details.
+ * 3. Execute the following command: `gradle bootRun`
+ *
+ * This will start the scheduler and begin executing any scheduled jobs. You can view the job details by accessing the Quartz
+ * Scheduler web interface at `http://localhost:8080/quartz/`.
+ *
+ * **Note:** This project is intended as a demonstration and learning tool. It may not be suitable for production environments
+ * without further customization and testing.
  *
  * @author Tyler Angelier
  */
@@ -48,4 +80,3 @@ public class SchedulerApplication {
     quartzJobDetailService.startTasks();
   }
 }
-```
