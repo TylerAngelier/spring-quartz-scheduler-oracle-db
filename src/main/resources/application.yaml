@@ -2,16 +2,13 @@ spring:
   profiles:
     active: dev
   datasource:
-    type: oracle.ucp.jdbc.PoolDataSource
+    # ?oracle.jdbc.sendBooleanAsNativeBoolean=false for 23ai images and Quartz incompatibility
+    # https://github.com/quartz-scheduler/quartz/discussions/1292
+    jdbcUrl: jdbc:oracle:thin:@//localhost:1521/FREEPDB1?oracle.jdbc.sendBooleanAsNativeBoolean=false
+    username: app_user
+    password: spring-quartz-scheduler-oracle-db
     driver-class-name: oracle.jdbc.OracleDriver
-    jdbcUrl: jdbc:oracle:thin:@devvm:1521/dev
-    oracleucp:
-      connection-factory-class-name: oracle.jdbc.pool.OracleDataSource
-      sql-for-validate-connection: "select * from dual"
-      connection-pool-name: SchedulerApplication
-      initial-pool-size: 5
-      min-pool-size: 5
-      max-pool-size: 20
+
   quartz:
     job-store-type: jdbc
     jdbc:

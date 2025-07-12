@@ -3,7 +3,8 @@ rootProject.name = 'scheduler'
 dependencyResolutionManagement {
   versionCatalogs {
     libs {
-      library('com.oracle.database.spring', 'com.oracle.database.spring:oracle-spring-boot-starter-ucp:3.1.0')
+      library('com.oracle.database.jdbc.ucp', 'com.oracle.database.jdbc:ucp:23.8.0.25.04')
+      library('com.oracle.database.jdbc.ojbdc11', 'com.oracle.database.jdbc:ojdbc11:23.8.0.25.04')
     }
   }
 }
