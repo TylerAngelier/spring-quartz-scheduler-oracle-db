@@ -22,8 +22,6 @@ dependencies {
 
 	// Persistence: direct oracle ucp starter 26.2.0 (aligns ojdbc17/ucp, auto-config for type + oracleucp.* props)
 	implementation 'com.oracle.database.spring:oracle-spring-boot-starter-ucp:26.2.0'
-	// Pin Quartz to 2.3.2 (exact pre-SB4 version) to preserve PoC insert behavior for IS_DURABLE etc (avoids 2.5 delta on OracleDelegate/column); SB4 manages ~2.5 but compat per design
-	implementation 'org.quartz-scheduler:quartz:2.3.2'
 
 	// Testing
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
