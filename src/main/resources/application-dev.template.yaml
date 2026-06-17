@@ -1,5 +1,6 @@
 spring:
   datasource:
-    jdbcUrl: jdbc:oracle:thin:@localhost:1521/FREEPDB1
-    username: APP_USER
-    password: "spring-quartz-scheduler-oracle-db"
+    jdbcUrl: jdbc:oracle:thin:@<your-domain>:1521/<your-pdb>
+    username: <your-user>
+    password: "<your-password>"
+    # For UCP starter + type=oracle.ucp... + oracleucp.* (and pre-context TC @Dynamic / CI), use jdbcUrl key (not standard url). Matches main/test yamls + Dynamic + SPRING_* overrides. No app init-mode needed (use quartz jdbc initialize-schema).

@@ -62,16 +62,57 @@ sql sys/Super_S3cur3@localhost:1521/FREEPDB1 @src/main/resources/quartz-oracle.s
 There is a `dev` profile that is activated by default. There is a
 sample file, `application-dev.template.yaml`, that has the values you most likely need to customize.
 
-Other than that, it's a basic Spring Boot application.
+Other than that, it's a basic Spring Boot application. Requires Java 21+ (sourceCompatibility '21') and Gradle (wrapper 9.5.1).
 
-To run:
-
-```bash
-gradle bootRun
-```
-
-To build a docker image:
+## Local Docker Oracle (exact one-liner per design Implementation Notes + Baseline)
 
 ```bash
-gradle bootBuildImage
+docker run -d --name oracle -p 1521:1521 -e ORACLE_RANDOM_PASSWORD=true -e APP_USER=app_user -e APP_USER_PASSWORD="TestPassword123()" -e ORACLE_DATABASE=dev gvenzl/oracle-free:23-slim-faststart
+# Wait for ready:
+while ! docker logs oracle 2>/dev/null | grep -qi 'DATABASE IS READY'; do sleep 5; done
+# or: while ! docker exec oracle healthcheck.sh; do sleep 5; done
 ```
+
+Copy `application-dev.template.yaml` → `application-dev.yml` (gitignored), edit creds/URL if needed. (Use `jdbcUrl` key for UCP + explicit type + oracleucp.* props + SPRING_DATASOURCE_JDBCURL overrides; see template comment + main/test yamls + TC @Dynamic.)
+
+## Run
+
+```bash
+./gradlew bootRun
+```
+
+Expected (after ~10s schedule + every 15s): repeated
+
+```
+... QuartzJobDetailService ... job established.
+...
+... QuartzJobDetailJob : Jobs (1): [QuartzJobDetail[schedName=..., jobName=QuartzJobDetailJob, ..., isDurable=true, ..., requestsRecovery=true]]
+... QuartzJobDetailJob : Executed Job in Xms
+```
+
+## Test (self-contained TC + Awaitility, no external DB)
+
+```bash
+./gradlew test --info
+```
+
+Uses @Testcontainers gvenzl/oracle-free:23-slim-faststart + full @DynamicPropertySource (all DS/UCP/quartz) + explicit startTasks() + Awaitility on DAO for job row + durable/recovery.
+
+## Build
+
+```bash
+./gradlew build
+```
+
+## Post-change verification checklist (per design Baseline box + Implementation Notes)
+
+- `./gradlew dependencies --configuration runtimeClasspath | diff -u /tmp/baseline-runtime.txt - || true` (modern: SB4.1 + jdbc + direct ucp 26.2.0, no data-jdbc bloat/old catalog/ojdbc11/Hikari)
+- `./gradlew test --info` (green; TC + Awaitility assert passes with job row + >=1 fire in qrtz_job_details)
+- (docker oracle running) `SPRING_PROFILES_ACTIVE=dev ./gradlew bootRun 2>&1 | tee ... | grep -E 'Jobs \([0-9]+\):|Executed Job in' | tail -5` (repeated "Jobs (1): [QuartzJobDetail[...]]" + "Executed Job in Xms" >=2x, no errors)
+- `grep -E 'Deprecated Gradle features were used|incompatible with Gradle 9.0' ... || echo 'Gradle 9 clean (post PR3)'`
+- `./gradlew build -x test --warning-mode all 2>&1 | tail -5`
+- Optional row verification (per notes): `docker exec -it oracle sqlplus -s app_user/"TestPassword123()"@//localhost:1521/dev <<'EOF' SELECT ... FROM qrtz_job_details WHERE job_name = 'QuartzJobDetailJob'; SELECT COUNT(*) FROM qrtz_fired_triggers ... EOF`
+
+See full design for PR plan, Implementation Notes (test wiring, QuartzConfig decision, migrator, etc.): /private/tmp/grok-design-doc-7badfbd8.md (and /tmp equiv).
+
+Tests use Testcontainers (Oracle gvenzl image) + Awaitility for scheduler/job execution + persistence validation against real Oracle (see SchedulerApplicationTests). No external DB required for `./gradlew test`.

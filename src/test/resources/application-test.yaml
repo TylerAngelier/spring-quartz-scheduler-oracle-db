@@ -1,0 +1,26 @@
+spring:
+  datasource:
+    type: oracle.ucp.jdbc.PoolDataSource
+    driver-class-name: oracle.jdbc.OracleDriver
+    jdbcUrl: jdbc:oracle:thin:@localhost:1521/dev
+    username: app_user
+    password: "TestPassword123()"
+    oracleucp:
+      connection-factory-class-name: oracle.jdbc.pool.OracleDataSource
+      sql-for-validate-connection: "select * from dual"
+      connection-pool-name: SchedulerApplicationTest
+      initial-pool-size: 2
+      min-pool-size: 2
+      max-pool-size: 5
+  quartz:
+    job-store-type: jdbc
+    jdbc:
+      initialize-schema: always
+    wait-for-jobs-to-complete-on-shutdown: true
+    properties:
+      org:
+        quartz:
+          threadPool:
+            threadCount: 2
+          jobStore:
+            driverDelegateClass: org.quartz.impl.jdbcjobstore.oracle.OracleDelegate
