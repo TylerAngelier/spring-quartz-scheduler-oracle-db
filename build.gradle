@@ -27,11 +27,9 @@ dependencies {
 
 	// Testing
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation 'org.testcontainers:testcontainers:1.20.1'
-	testImplementation 'org.testcontainers:oracle-free:1.20.1'
-	testImplementation 'org.testcontainers:junit-jupiter:1.20.1'
-	testImplementation 'org.awaitility:awaitility:4.2.1'  // pinned explicit (aligns PR1 "versions explicit" for TC sketch + Awaitility 60s/poll; resolved via prior)
 	testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+	testImplementation 'org.testcontainers:oracle-free'  // version managed by Spring Boot BOM via spring-boot-testcontainers
+	testImplementation 'org.awaitility:awaitility'       // version managed (or pin only if you need a specific one for the TC test timing)
 }
 
 tasks.named('bootBuildImage') {
