@@ -24,11 +24,10 @@ dependencies {
 	implementation 'com.oracle.database.spring:oracle-spring-boot-starter-ucp:26.2.0'
 
 	// Testing
+	// Oracle is provided externally (Drone pipeline service in CI, local docker per README),
+	// so Testcontainers is not needed. Awaitility is used by the integration test.
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation 'org.springframework.boot:spring-boot-testcontainers'
-	// junit-jupiter pinned (SB BOM manages core testcontainers:2.0.5 but not necessarily the junit-jupiter extension module for @Testcontainers/@Container)
-	testImplementation 'org.testcontainers:junit-jupiter:1.20.1'
-	testImplementation 'org.awaitility:awaitility'               // version managed (pin only if the 60s Awaitility timing in the TC test requires exact version)
+	testImplementation 'org.awaitility:awaitility'
 }
 
 tasks.named('bootBuildImage') {

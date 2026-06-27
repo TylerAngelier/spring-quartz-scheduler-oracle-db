@@ -2,7 +2,7 @@
 
 I mean... Everyone wants to build a scheduler, right?
 
-![Build Passing](https://github.com/tylerangelier/spring-quartz-scheduler-oracle-db/actions/workflows/gradle.yml/badge.svg)
+CI runs on [Drone](https://drone.local.tylerangelier.com) (homelab). See [CI](#ci-drone) below.
 
 # Usage
 
@@ -90,13 +90,44 @@ Expected (after ~10s schedule + every 15s): repeated
 ... QuartzJobDetailJob : Executed Job in Xms
 ```
 
-## Test (self-contained TC + Awaitility, no external DB)
+## Test (Awaitility against Oracle)
+
+The integration test needs a running Oracle database. Start the one-liner above
+("Local Docker Oracle") in one terminal, then:
 
 ```bash
 ./gradlew test --info
 ```
 
-Uses @Testcontainers gvenzl/oracle-free:23-slim-faststart + full @DynamicPropertySource (all DS/UCP/quartz) + explicit startTasks() + Awaitility on DAO for job row + durable/recovery.
+The test reads the Oracle location from environment variables (all optional;
+defaults match the docker one-liner):
+
+| Variable | Default | |
+| --- | --- | --- |
+| `ORACLE_HOST` | `localhost` | |
+| `ORACLE_PORT` | `1521` | |
+| `ORACLE_SERVICE` | `dev` | |
+| `ORACLE_USER` | `app_user` | |
+| `ORACLE_PASSWORD` | `TestPassword123()` | |
+
+In CI (Drone) these point at a pipeline Oracle service; locally the defaults
+just work. Uses a full `@DynamicPropertySource` (all DS/UCP/Quartz) + explicit
+`startTasks()` + Awaitility asserting the job row exists, is durable, and that
+`TIMES_TRIGGERED >= 1`.
+
+## CI (Drone)
+
+Continuous integration runs on the homelab Drone server
+(`https://drone.local.tylerangelier.com`), defined in [`.drone.yml`](.drone.yml).
+It is a **test-only** pipeline (no image publish / deploy — this is a PoC):
+
+1. Starts an `gvenzl/oracle-free:23-slim-faststart` Oracle service (waits for
+   its healthcheck before proceeding).
+2. Runs `./gradlew test --info` in `eclipse-temurin:21-jdk`, pointing the test
+   at the service via `ORACLE_HOST=oracle`.
+
+The pipeline triggers on `push` and `pull_request`. There is no GitHub Actions
+workflow anymore.
 
 ## Build
 
@@ -104,15 +135,12 @@ Uses @Testcontainers gvenzl/oracle-free:23-slim-faststart + full @DynamicPropert
 ./gradlew build
 ```
 
-## Post-change verification checklist (per design Baseline box + Implementation Notes)
+## Post-change verification checklist
 
 - `./gradlew dependencies --configuration runtimeClasspath | diff -u /tmp/baseline-runtime.txt - || true` (modern: SB4.1 + jdbc + direct ucp 26.2.0, no data-jdbc bloat/old catalog/ojdbc11/Hikari)
-- `./gradlew test --info` (green; TC + Awaitility assert passes with job row + >=1 fire in qrtz_job_details)
-- (docker oracle running) `SPRING_PROFILES_ACTIVE=dev ./gradlew bootRun 2>&1 | tee ... | grep -E 'Jobs \([0-9]+\):|Executed Job in' | tail -5` (repeated "Jobs (1): [QuartzJobDetail[...]]" + "Executed Job in Xms" >=2x, no errors)
-- `grep -E 'Deprecated Gradle features were used|incompatible with Gradle 9.0' ... || echo 'Gradle 9 clean (post PR3)'`
+- (docker oracle running) `./gradlew test --info` (green; Awaitility assert passes with job row + `TIMES_TRIGGERED >= 1`)
+- (docker oracle running) `SPRING_PROFILES_ACTIVE=dev ./gradlew bootRun 2>&1 | grep -E 'Jobs \([0-9]+\):|Executed Job in' | tail -5` (repeated "Jobs (1): [QuartzJobDetail[...]]" + "Executed Job in Xms" >=2x, no errors)
+- `grep -E 'Deprecated Gradle features were used|incompatible with Gradle 9.0' ... || echo 'Gradle 9 clean'`
 - `./gradlew build -x test --warning-mode all 2>&1 | tail -5`
-- Optional row verification (per notes): `docker exec -it oracle sqlplus -s app_user/"TestPassword123()"@//localhost:1521/dev <<'EOF' SELECT ... FROM qrtz_job_details WHERE job_name = 'QuartzJobDetailJob'; SELECT COUNT(*) FROM qrtz_fired_triggers ... EOF`
 
-See full design for PR plan, Implementation Notes (test wiring, QuartzConfig decision, migrator, etc.): /private/tmp/grok-design-doc-7badfbd8.md (and /tmp equiv).
-
-Tests use Testcontainers (Oracle gvenzl image) + Awaitility for scheduler/job execution + persistence validation against real Oracle (see SchedulerApplicationTests). No external DB required for `./gradlew test`.
+The integration test uses Awaitility for scheduler/job execution + persistence validation against a real Oracle database (see `SchedulerApplicationTests`). Oracle is provided externally — by Drone as a pipeline service in CI, or by the docker one-liner locally.

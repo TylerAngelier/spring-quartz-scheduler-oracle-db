@@ -1,0 +1,60 @@
+# Drone CI — test-only pipeline.
+#
+# Runs the Spring Boot + Quartz integration test against an Oracle database
+# provided as a pipeline service (homelab Drone docker runner). There is no
+# publish or deploy step; this repo is a proof-of-concept. See README.md
+# "Development" and AGENTS.md for how to run the same test locally.
+kind: pipeline
+type: docker
+name: default
+
+trigger:
+  event:
+    - push
+    - pull_request
+
+# Oracle database provided as a service. Drone starts this container and the
+# `test` step connects to it via the DNS name "oracle". The gvenzl image ships
+# /healthcheck.sh; defining it here lets the Drone docker runner wait until the
+# database is actually ready (not just the port being open) before running steps.
+services:
+  - name: oracle
+    image: gvenzl/oracle-free:23-slim-faststart
+    pull: if-not-exists
+    environment:
+      ORACLE_RANDOM_PASSWORD: "true"
+      APP_USER: app_user
+      APP_USER_PASSWORD: "TestPassword123()"
+      ORACLE_DATABASE: dev
+    healthcheck:
+      test: ["CMD-SHELL", "/healthcheck.sh"]
+      interval: 10s
+      timeout: 10s
+      retries: 30
+      start_period: 40s
+
+steps:
+  - name: test
+    image: eclipse-temurin:21-jdk
+    environment:
+      ORACLE_HOST: oracle
+      ORACLE_PORT: "1521"
+      ORACLE_SERVICE: dev
+      ORACLE_USER: app_user
+      ORACLE_PASSWORD: "TestPassword123()"
+    commands:
+      # Defense-in-depth: if the runner ignores the service healthcheck above,
+      # wait for Oracle to accept TCP connections before invoking Gradle.
+      # (eclipse-temurin uses dash as /bin/sh, so invoke bash explicitly for
+      # /dev/tcp support; $$ is the Drone escape for a literal $.)
+      - |
+        echo "Waiting for Oracle at oracle:1521..."
+        for i in $$(seq 1 90); do
+          if bash -c 'exec 3<>/dev/tcp/oracle/1521' 2>/dev/null; then
+            echo "Oracle reachable."
+            break
+          fi
+          [ "$$i" = "90" ] && { echo "Oracle not reachable after 450s"; exit 1; }
+          sleep 5
+        done
+      - ./gradlew test --info

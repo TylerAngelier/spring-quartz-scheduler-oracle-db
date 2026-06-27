@@ -10,11 +10,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.wait.strategy.Wait;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -27,27 +22,34 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 import org.quartz.Scheduler;
 
+/**
+ * Integration test against a live Oracle database.
+ *
+ * <p>The Oracle connection is environment-driven so the same test runs in CI (Drone provides an
+ * {@code gvenzl/oracle-free} pipeline service reachable at host {@code oracle}) and locally (start
+ * the Oracle one-liner from the README, then {@code ./gradlew test}). Defaults match the local
+ * Docker setup ({@code localhost:1521/dev}, {@code app_user}):
+ *
+ * <pre>
+ *   ORACLE_HOST     default localhost
+ *   ORACLE_PORT     default 1521
+ *   ORACLE_SERVICE  default dev
+ *   ORACLE_USER     default app_user
+ *   ORACLE_PASSWORD default TestPassword123()
+ * </pre>
+ */
 @SpringBootTest
 @ActiveProfiles("test")
-@Testcontainers
 class SchedulerApplicationTests {
-
-  @Container
-  static GenericContainer<?> oracle = new GenericContainer<>(
-      DockerImageName.parse("gvenzl/oracle-free:23-slim-faststart"))
-      .withExposedPorts(1521)
-      .withEnv("ORACLE_RANDOM_PASSWORD", "true")
-      .withEnv("APP_USER", "app_user")
-      .withEnv("APP_USER_PASSWORD", "TestPassword123()")
-      .withEnv("ORACLE_DATABASE", "dev")
-      .waitingFor(Wait.forLogMessage(".*DATABASE IS READY.*", 1)
-          .withStartupTimeout(Duration.ofMinutes(5)));
 
   @DynamicPropertySource
   static void configureProperties(DynamicPropertyRegistry registry) {
-    String host = oracle.getHost();
-    Integer port = oracle.getMappedPort(1521);
-    String jdbcUrl = "jdbc:oracle:thin:@" + host + ":" + port + "/dev";
+    String host = System.getenv().getOrDefault("ORACLE_HOST", "localhost");
+    String port = System.getenv().getOrDefault("ORACLE_PORT", "1521");
+    String service = System.getenv().getOrDefault("ORACLE_SERVICE", "dev");
+    String user = System.getenv().getOrDefault("ORACLE_USER", "app_user");
+    String password = System.getenv().getOrDefault("ORACLE_PASSWORD", "TestPassword123()");
+    String jdbcUrl = "jdbc:oracle:thin:@" + host + ":" + port + "/" + service;
     registry.add("spring.datasource.type", () -> "oracle.ucp.jdbc.PoolDataSource");
     registry.add("spring.datasource.driver-class-name", () -> "oracle.jdbc.OracleDriver");
     // Provide both 'url' (required by core DataSourceProperties.determineUrl / SB auto-config path)
@@ -55,16 +57,16 @@ class SchedulerApplicationTests {
     // matching application*.yaml + template comments + oracleucp config).
     registry.add("spring.datasource.url", () -> jdbcUrl);
     registry.add("spring.datasource.jdbcUrl", () -> jdbcUrl);
-    registry.add("spring.datasource.username", () -> "app_user");
-    registry.add("spring.datasource.password", () -> "TestPassword123()");
+    registry.add("spring.datasource.username", () -> user);
+    registry.add("spring.datasource.password", () -> password);
     // replicate key oracleucp.* from application-test.yaml + quartz init
     registry.add("spring.datasource.oracleucp.connection-factory-class-name", () -> "oracle.jdbc.pool.OracleDataSource");
     registry.add("spring.datasource.oracleucp.sql-for-validate-connection", () -> "select * from dual");
     registry.add("spring.datasource.oracleucp.connection-pool-name", () -> "SchedulerApplicationTest");
     registry.add("spring.datasource.oracleucp.initial-pool-size", () -> "2");
     registry.add("spring.datasource.oracleucp.min-pool-size", () -> "2");
-    registry.add("spring.datasource.oracleucp.max-pool-size", () -> "10");  // bumped for TC test (Quartz scheduler threads + store + Awaitility polling + init)
-    registry.add("spring.quartz.jdbc.initialize-schema", () -> "always");  // canonical dotted (binds early for eager Quartz init pre-context; matches yamls; CI uses SPRING_ uppercase env for OS binding)
+    registry.add("spring.datasource.oracleucp.max-pool-size", () -> "10");  // Quartz scheduler threads + store + Awaitility polling + init
+    registry.add("spring.quartz.jdbc.initialize-schema", () -> "always");  // canonical dotted (binds early for eager Quartz init pre-context; matches yamls)
   }
 
   @Autowired
