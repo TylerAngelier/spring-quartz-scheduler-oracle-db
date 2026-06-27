@@ -26,8 +26,9 @@ dependencies {
 	// Testing
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.boot:spring-boot-testcontainers'
-	testImplementation 'org.testcontainers:oracle-free'  // version managed by Spring Boot BOM via spring-boot-testcontainers
-	testImplementation 'org.awaitility:awaitility'       // version managed (or pin only if you need a specific one for the TC test timing)
+	// junit-jupiter pinned (SB BOM manages core testcontainers:2.0.5 but not necessarily the junit-jupiter extension module for @Testcontainers/@Container)
+	testImplementation 'org.testcontainers:junit-jupiter:1.20.1'
+	testImplementation 'org.awaitility:awaitility'               // version managed (pin only if the 60s Awaitility timing in the TC test requires exact version)
 }
 
 tasks.named('bootBuildImage') {
