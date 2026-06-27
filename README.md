@@ -2,7 +2,7 @@
 
 I mean... Everyone wants to build a scheduler, right?
 
-CI runs on [Drone](https://drone.local.tylerangelier.com) (homelab). See [CI](#ci-drone) below.
+CI runs on [Drone](https://drone.trangelier.dev) (homelab). See [CI](#ci-drone) below.
 
 # Usage
 
@@ -118,7 +118,7 @@ just work. Uses a full `@DynamicPropertySource` (all DS/UCP/Quartz) + explicit
 ## CI (Drone)
 
 Continuous integration runs on the homelab Drone server
-(`https://drone.local.tylerangelier.com`), defined in [`.drone.yml`](.drone.yml).
+(`https://drone.trangelier.dev`), defined in [`.drone.yml`](.drone.yml).
 It is a **test-only** pipeline (no image publish / deploy — this is a PoC):
 
 1. Starts an `gvenzl/oracle-free:23-slim-faststart` Oracle service (waits for
