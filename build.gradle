@@ -1,16 +1,14 @@
 plugins {
 	id 'java'
-	id 'org.springframework.boot' version '3.5.3'
-	id 'io.spring.dependency-management' version '1.1.5'
+	id 'org.springframework.boot' version '4.1.0'
+	id 'io.spring.dependency-management' version '1.1.7'
 }
 
 group = 'dev.trangelier'
 version = '0.0.1-SNAPSHOT'
 
 java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(17)
-	}
+	sourceCompatibility = '21'
 }
 
 repositories {
@@ -20,13 +18,16 @@ repositories {
 dependencies {
 	// Spring
 	implementation 'org.springframework.boot:spring-boot-starter-quartz'
-	implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
-	// Oracle specifics
-	implementation(libs.com.oracle.database.jdbc.ucp)
-	implementation(libs.com.oracle.database.jdbc.ojbdc11)
+	implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+
+	// Persistence: direct oracle ucp starter 26.2.0 (aligns ojdbc17/ucp, auto-config for type + oracleucp.* props)
+	implementation 'com.oracle.database.spring:oracle-spring-boot-starter-ucp:26.2.0'
 
 	// Testing
+	// Oracle is provided externally (Drone pipeline service in CI, local docker per README),
+	// so Testcontainers is not needed. Awaitility is used by the integration test.
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.awaitility:awaitility'
 }
 
 tasks.named('bootBuildImage') {
